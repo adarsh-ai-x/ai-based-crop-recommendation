@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Crop Advisory System</title>
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --primary-dark: #1b5e20;
+            --primary-light: #e8f5e9;
+            --accent: #f57c00;
+            --text-dark: #263238;
+            --text-light: #ffffff;
+            --bg-app: #f4f7f5;
+            --bg-card: #ffffff;
+            --border: #cfd8dc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-app);
+            color: var(--text-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            height: 90vh;
+            background: var(--bg-card);
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--text-light);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Chat Area */
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-color: #fafbfc;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            word-wrap: break-word;
+        }
+
+        .message.bot {
+            background-color: white;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #e0e0e0;
+        }
+
+        .message.user {
+            background-color: var(--primary);
+            color: var(--text-light);
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 8px;
+            display: block;
+        }
+
+        /* Preview Area */
+        .preview-bar {
+            display: none;
+            background: var(--primary-light);
+            padding: 10px 20px;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid var(--border);
+        }
+
+        .preview-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .preview-img {
+            height: 45px;
+            width: 45px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid var(--primary);
+        }
+
+        .btn-remove-img {
+            background: none;
+            border: none;
+            color: #d32f2f;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        /* Input Bar */
+        .input-bar {
+            padding: 15px 20px;
+            background: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .input-bar textarea {
+            flex: 1;
+            resize: none;
+            height: 44px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            outline: none;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        .input-bar textarea:focus {
+            border-color: var(--primary);
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .icon-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        .icon-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #5f6368;
+        }
+
+        .btn-send {
+            background: var(--primary);
+        }
+
+        .btn-send:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-send svg {
+            fill: white;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .message p { margin-bottom: 8px; }
+        .message p:last-child { margin-bottom: 0; }
+        .message ul, .message ol { margin-left: 20px; margin-bottom: 8px; }
+        .message strong { color: inherit; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <header class="header">
+        <h1>🌱 Smart Crop Advisory</h1>
+        <div class="status-badge">● System Online</div>
+    </header>
+
+    <!-- Chat Space -->
+    <div class="chat-box" id="chat-box">
+        <div class="message bot">
+            <strong>Smart Crop Advisor:</strong><br>
+            Welcome! I am your AI Agriculture Assistant. I am completely set up and ready to help. You can ask me questions about crop management, soil health, fertilizer scheduling, or upload a picture of a leaf to instantly check for pests and diseases.
+        </div>
+    </div>
+
+    <!-- Image Preview Area -->
+    <div class="preview-bar" id="preview-bar">
+        <div class="preview-container">
+            <img src="" alt="Upload preview" class="preview-img" id="preview-img">
+            <span style="font-size: 0.85rem; color: var(--primary-dark);">Plant image attached ready to analyze</span>
+        </div>
+        <button class="btn-remove-img" id="clear-img-btn">&times;</button>
+    </div>
+
+    <!-- Input Control Bar -->
+    <div class="input-bar">
+        <input type="file" id="file-input" accept="image/*">
+        <button class="icon-btn" id="upload-trigger-btn" title="Upload plant image for diagnosis">
+            <svg viewBox="0 0 24 24"><path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4.86 8.86l-3 3.87L9 13.14 6 17h12l-3.86-5.14z"/></svg>
+        </button>
+        
+        <textarea id="user-prompt" placeholder="Ask a question or describe your crop issue..."></textarea>
+        
+        <button class="icon-btn btn-send" id="send-btn" title="Send Message">
+            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+    </div>
+</div>
+
+<script>
+    // HARDCODED API KEY CONFIGURATION
+    // Replace the text below with your actual API key from Google AI Studio
+    const apiKey = "AQ.Ab8RN6LZULY9yCQNOUAtFVervWgcFvblxcpk8fapr6FmKXS_mg";
+    
+    let selectedImageBase64 = null;
+    let selectedImageMime = null;
+    
+    const systemInstruction = "You are the 'Smart Crop Advisory System', an expert agronomist, crop consultant, and plant pathologist assistant. Provide farmers and growers with highly accurate, structured, and actionable guidance regarding soil management, pest control, crop rotation, organic alternatives, and irrigation planning. If the user provides an image, carefully check for signs of crop diseases, visual nutrient deficiencies, or pest infestations. Detail the likely issue, severity, and clear mitigation options (both chemical and bio-rational/organic techniques). Keep explanations straightforward and accessible.";
+    const chatHistory = [];
+
+    // UI elements
+    const chatBox = document.getElementById('chat-box');
+    const userPrompt = document.getElementById('user-prompt');
+    const sendBtn = document.getElementById('send-btn');
+    const fileInput = document.getElementById('file-input');
+    const uploadTriggerBtn = document.getElementById('upload-trigger-btn');
+    const previewBar = document.getElementById('preview-bar');
+    const previewImg = document.getElementById('preview-img');
+    const clearImgBtn = document.getElementById('clear-img-btn');
+
+    // Handle Image upload selection
+    uploadTriggerBtn.addEventListener('click', () => fileInput.click());
+    
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        selectedImageMime = file.type;
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const fullResult = event.target.result;
+            previewImg.src = fullResult;
+            previewBar.style.display = 'flex';
+            selectedImageBase64 = fullResult.split(',')[1];
+        };
+        reader.readAsDataURL(file);
+    });
+
+    clearImgBtn.addEventListener('click', () => {
+        selectedImageBase64 = null;
+        selectedImageMime = null;
+        fileInput.value = '';
+        previewBar.style.display = 'none';
+        previewImg.src = '';
+    });
+
+    function formatMarkdown(text) {
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/^\*\s(.*)$/gm, '<li>$1</li>')
+            .replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>')
+            .replace(/<\/ul>\s*<ul>/g, '')
+            .replace(/\n/g, '<br>');
+    }
+
+    async function handleSendMessage() {
+        const text = userPrompt.value.trim();
+        if (!text && !selectedImageBase64) return;
+        
+        if (!apiKey || apiKey === "YOUR_ACTUAL_GEMINI_API_KEY_HERE") {
+            alert("Configuration Error: Please open index.html and replace 'YOUR_ACTUAL_GEMINI_API_KEY_HERE' with your real Gemini API key.");
+            return;
+        }
+
+        // Render user bubble
+        const userMsgDiv = document.createElement('div');
+        userMsgDiv.className = 'message user';
+        userMsgDiv.innerHTML = text ? `<div>${text.replace(/\n/g, '<br>')}</div>` : '';
+        
+        const currentImgBase64 = selectedImageBase64;
+        const currentImgMime = selectedImageMime;
+
+        if (currentImgBase64) {
+            const imgEl = document.createElement('img');
+            imgEl.src = `data:${currentImgMime};base64,${currentImgBase64}`;
+            userMsgDiv.appendChild(imgEl);
+            clearImgBtn.click();
+        }
+
+        chatBox.appendChild(userMsgDiv);
+        userPrompt.value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Render AI loading element placeholder
+        const botMsgDiv = document.createElement('div');
+        botMsgDiv.className = 'message bot';
+        botMsgDiv.innerHTML = '<strong>Smart Crop Advisor:</strong><br><em style="color:#666;">Analyzing request and formulating guidance...</em>';
+        chatBox.appendChild(botMsgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        const contentsPayload = [];
+        
+        chatHistory.forEach(hist => {
+            contentsPayload.push({
+                role: hist.role,
+                parts: [{ text: hist.text }]
+            });
+        });
+
+        const currentParts = [];
+        if (currentImgBase64) {
+            currentParts.push({
+                inlineData: {
+                    mimeType: currentImgMime,
+                    data: currentImgBase64
+                }
+            });
+        }
+        
+        const promptString = text || "Please examine this plant image and provide diagnosis, identification, and remedy strategies.";
+        currentParts.push({ text: promptString });
+
+        contentsPayload.push({
+            role: 'user',
+            parts: currentParts
+        });
+
+        try {
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: contentsPayload,
+                    systemInstruction: {
+                        parts: [{ text: systemInstruction }]
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || `HTTP Server Status code: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || "No legible response text retrieved.";
+
+            chatHistory.push({ role: 'user', text: promptString });
+            chatHistory.push({ role: 'model', text: replyText });
+
+            botMsgDiv.innerHTML = `<strong>Smart Crop Advisor:</strong><br><div>${formatMarkdown(replyText)}</div>`;
+
+        } catch (err) {
+            botMsgDiv.innerHTML = `<strong>Smart Crop Advisor:</strong><br><span style="color:#d32f2f;">Trouble completing request. Details: ${err.message}</span>`;
+        } finally {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    }
+
+    sendBtn.addEventListener('click', handleSendMessage);
+    userPrompt.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage();
+        }
+    });
+</script>
+</body>
+</html>
