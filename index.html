@@ -70,7 +70,6 @@
             font-weight: 500;
         }
 
-        /* Chat Area */
         .chat-box {
             flex: 1;
             padding: 20px;
@@ -112,7 +111,6 @@
             display: block;
         }
 
-        /* Preview Area */
         .preview-bar {
             display: none;
             background: var(--primary-light);
@@ -144,7 +142,6 @@
             font-size: 1.2rem;
         }
 
-        /* Input Bar */
         .input-bar {
             padding: 15px 20px;
             background: white;
@@ -218,13 +215,11 @@
 <body>
 
 <div class="container">
-    <!-- Header -->
     <header class="header">
         <h1>🌱 Smart Crop Advisory</h1>
         <div class="status-badge">● System Online</div>
     </header>
 
-    <!-- Chat Space -->
     <div class="chat-box" id="chat-box">
         <div class="message bot">
             <strong>Smart Crop Advisor:</strong><br>
@@ -232,7 +227,6 @@
         </div>
     </div>
 
-    <!-- Image Preview Area -->
     <div class="preview-bar" id="preview-bar">
         <div class="preview-container">
             <img src="" alt="Upload preview" class="preview-img" id="preview-img">
@@ -241,7 +235,6 @@
         <button class="btn-remove-img" id="clear-img-btn">&times;</button>
     </div>
 
-    <!-- Input Control Bar -->
     <div class="input-bar">
         <input type="file" id="file-input" accept="image/*">
         <button class="icon-btn" id="upload-trigger-btn" title="Upload plant image for diagnosis">
@@ -257,9 +250,8 @@
 </div>
 
 <script>
-    // HARDCODED API KEY CONFIGURATION
-    // Replace the text below with your actual API key from Google AI Studio
-    const apiKey = "AQ.Ab8RN6KtugTIscD65uZNqqjufUZGkl32y1hAuUy-0wJ_DsyaDg";
+    // LINE 125: PASTE YOUR GEMINI API KEY HERE
+    const apiKey = "AQ.Ab8RN6IudaxUXpQjGjeJoIUa4e1HsnVZFo5oiIHkPRmnlSBS8A";
     
     let selectedImageBase64 = null;
     let selectedImageMime = null;
@@ -267,7 +259,6 @@
     const systemInstruction = "You are the 'Smart Crop Advisory System', an expert agronomist, crop consultant, and plant pathologist assistant. Provide farmers and growers with highly accurate, structured, and actionable guidance regarding soil management, pest control, crop rotation, organic alternatives, and irrigation planning. If the user provides an image, carefully check for signs of crop diseases, visual nutrient deficiencies, or pest infestations. Detail the likely issue, severity, and clear mitigation options (both chemical and bio-rational/organic techniques). Keep explanations straightforward and accessible.";
     const chatHistory = [];
 
-    // UI elements
     const chatBox = document.getElementById('chat-box');
     const userPrompt = document.getElementById('user-prompt');
     const sendBtn = document.getElementById('send-btn');
@@ -277,7 +268,6 @@
     const previewImg = document.getElementById('preview-img');
     const clearImgBtn = document.getElementById('clear-img-btn');
 
-    // Handle Image upload selection
     uploadTriggerBtn.addEventListener('click', () => fileInput.click());
     
     fileInput.addEventListener('change', (e) => {
@@ -307,8 +297,6 @@
         return text
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/^\*\s(.*)$/gm, '<li>$1</li>')
-            .replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>')
-            .replace(/<\/ul>\s*<ul>/g, '')
             .replace(/\n/g, '<br>');
     }
 
@@ -321,7 +309,6 @@
             return;
         }
 
-        // Render user bubble
         const userMsgDiv = document.createElement('div');
         userMsgDiv.className = 'message user';
         userMsgDiv.innerHTML = text ? `<div>${text.replace(/\n/g, '<br>')}</div>` : '';
@@ -340,7 +327,6 @@
         userPrompt.value = '';
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        // Render AI loading element placeholder
         const botMsgDiv = document.createElement('div');
         botMsgDiv.className = 'message bot';
         botMsgDiv.innerHTML = '<strong>Smart Crop Advisor:</strong><br><em style="color:#666;">Analyzing request and formulating guidance...</em>';
@@ -389,11 +375,11 @@
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error?.message || `HTTP Server Status code: ${response.status}`);
+                throw new Error(errorData.error?.message || `HTTP status: ${response.status}`);
             }
 
             const data = await response.json();
-            const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || "No legible response text retrieved.";
+            const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response text retrieved.";
 
             chatHistory.push({ role: 'user', text: promptString });
             chatHistory.push({ role: 'model', text: replyText });
